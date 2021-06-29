@@ -12,13 +12,16 @@ public class Manager : MonoBehaviour
     public Slider CamFOVSlider;
     public RectTransform mainPanel;
     public RectTransform foldButton;
+    public SmoothMouseLook smoothMouseLook;
     public bool isPanelOpen = true;
     public bool isDomeOn = true;
+    public bool freeCam = false;
     public bool camRotRight = true;
     public float cameraRotSpeed = 5;
 
     private void Start()
     {
+        smoothMouseLook = FindObjectOfType<SmoothMouseLook>();
         glassDome = GameObject.Find("GlassDome");
         cameraHolder = GameObject.Find("CameraHolder");
         rotSpeedSlider = GameObject.Find("RotSpeedSlider").GetComponentInChildren<Slider>();
@@ -30,7 +33,6 @@ public class Manager : MonoBehaviour
         CamFOVSlider.value = cam.fieldOfView;
 
         camlocalpos = cam.transform.localPosition;
-
     }
 
     public void MoveDome()
@@ -44,10 +46,28 @@ public class Manager : MonoBehaviour
 
     private void Update()
     {
-        Vector3 rotDir = camRotRight ? Vector3.down : Vector3.up;
-        cameraHolder.transform.Rotate(transform.rotation.eulerAngles + rotDir * (cameraRotSpeed * Time.deltaTime));
+        FreeCamToggler();
+    }
 
-        //cam.transform.forward = camlocalpos;
+    private void FreeCamToggler()
+    {
+        if (!freeCam)
+        {
+            if (smoothMouseLook)
+            {
+                smoothMouseLook.enabled = false;
+            }
+
+            Vector3 rotDir = camRotRight ? Vector3.down : Vector3.up;
+            cameraHolder.transform.Rotate(transform.rotation.eulerAngles + rotDir * (cameraRotSpeed * Time.deltaTime));
+        }
+        else
+        {
+            if (!smoothMouseLook)
+            {
+                smoothMouseLook.enabled = true;
+            }
+        }
     }
 
     public void ChangeRotDir(bool rot)
@@ -57,10 +77,11 @@ public class Manager : MonoBehaviour
 
     public void ChangeRotSpeed()
     {
-        cameraRotSpeed = rotSpeedSlider.value/5;
+        cameraRotSpeed = rotSpeedSlider.value / 5;
     }
 
     public Vector3 camlocalpos;
+
     public void ChangeCamFOV()
     {
         Vector3 camPos = cam.transform.position;
@@ -71,7 +92,13 @@ public class Manager : MonoBehaviour
     {
         mainPanel.DOMoveX(-mainPanel.position.x, 1).SetEase(Ease.InOutBack);
         float dir = isPanelOpen ? -200 : 200;
-        foldButton.DOMoveX(foldButton.position.x+dir, 1).SetEase(Ease.InOutBack);
+        foldButton.DOMoveX(foldButton.position.x + dir, 1).SetEase(Ease.InOutBack);
         isPanelOpen = isPanelOpen != true;
+    }
+
+    public void ChangeFreeCamBool()
+    {
+        print("Changed bool to " + !freeCam);
+        freeCam = !freeCam;
     }
 }
